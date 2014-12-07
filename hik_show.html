@@ -70,31 +70,36 @@ var cam_window = [];
           
           cam_selected = parseInt($(".ui-selected").attr("id").substr(3));
           result.append( cam_list[cam_selected].name + "/"+ (index + 1));
+          update_uri(cam_selected);
 
         });
       }
 
-
-
-
-
-
     });
   
+
+
+	
+
     
   });
   
 
 
-function myCamera (name, ipaddr, user_name, user_pass) {
+function myCamera (name, ipaddr, user_name, user_pass, ch, stream, port) {
 
 	this.name = name;
 	this.ipaddr = ipaddr;
 	this.user_name = user_name;
 	this.user_hash = $.base64.encode(user_name + ":" + user_pass);
-	this.URI = "rtsp://"+ipaddr+":554/ISAPI/streaming/channels/102?auth="+this.user_hash;
+	this.URI = "rtsp://"+ipaddr+":"+port+"/ISAPI/streaming/channels/"+ch+"0"+stream+"?auth="+this.user_hash;
 
-	console.log(" obj > u: %s, p: %s, h: %s", user_name, user_pass, this.user_hash);
+// rtsp://admin:329240@192.168.12.104:554/h264/ch1/sub/av_stream
+// 
+// rtsp://admin:329240@192.168.12.100:554/Streaming/Channels/301
+
+
+	//console.log(" obj > u: %s, p: %s, h: %s", user_name, user_pass, this.user_hash);
 
 
 }
@@ -118,7 +123,7 @@ function read_settings(){
 			
 			$('<li id="cam'+ i +'">' + item_obj.name + ' ( ' + item_obj.user_name + '@' + item_obj.ipaddr + ' )</li>').addClass('ui-widget-content').appendTo($('#selectable'));
 
-			console.log("item "+ i +"successfuly readed and added");
+			//console.log("item "+ i +"successfuly readed and added");
 
 			
 		}
@@ -156,7 +161,7 @@ function add_cam() {
 
 
  
-	cam_rec = new myCamera ($("#_name").val(), $("#_ipaddr").val(), $("#_user_name").val(), $("#_user_pass").val() );
+	cam_rec = new myCamera ($("#_name").val(), $("#_ipaddr").val(), $("#_user_name").val(), $("#_user_pass").val(), $("#_ch").val(), $("#_stream").val(), $("#_port").val() );
 
 
 	$('<li id="cam'+ cam_index +'">' + cam_rec.name + ' ( ' + cam_rec.user_name + '@' + cam_rec.ipaddr + ' )</li>').addClass('ui-widget-content').appendTo($('#selectable'));
@@ -233,12 +238,20 @@ function play_cam() {
     <p >
 
 		<form>
-			name: <input type="text" id="_name" size="5" value="cam1">
-			IP: <input type="text" id="_ipaddr" size="15" value="192.168.12">
-			login: <input type="text" id="_user_name" size=6 value="admin">
-			pass: <input type="password" id="_user_pass" size=10 value="12345">
+			name: <input type="text" id="_name" size="25" value="cam1"><br>
+			IP: <input type="text" id="_ipaddr" size="15" value="192.0.0.64">
 
+			login: <input type="text" id="_user_name" size=6 value="admin">
+			pass: <input type="password" id="_user_pass" size=10 value="12345"> <br>
+			Port: <input type="text" id="_port" size=3 value="554">
+			CH: <select id="_ch"><option>1<option>2<option>3<option>4<option>5<option>6<option>7<option>8</select>
+			Stream: <select id="_stream"><option value=1>Main<option value=2 selected>SubStream</select>
 			<button onclick="add_cam();" id="pls">+</button>
+			<br>
+			
+
+
+			
 		</form>
 
 	</p>
@@ -256,6 +269,9 @@ function play_cam() {
 	<br>
 
 	<form>
+		URI:<br>
+		<input style="font-size:10px;" type="text" id="_URI" size=90 disabled value=""><br><br>
+		
 		<button onclick="play_cam();" id="play">play</button>
 		<button onclick="del_cam();" id="del">delete</button>
 	</form>
@@ -269,7 +285,25 @@ function play_cam() {
 
 
 
+<script>
 
+function update_uri(cam) { 
+
+if (!cam) {
+	tmp = new myCamera ($("#_name").val(), $("#_ipaddr").val(), $("#_user_name").val(), $("#_user_pass").val(), $("#_ch").val(), $("#_stream").val(), $("#_port").val() );
+
+	$("#_URI").attr("value", tmp.URI);
+} else {
+	$("#_URI").attr("value",cam_list[cam_selected].URI);
+}
+
+
+}
+
+$("input").keyup(function() { update_uri() });
+$("select").change(function() { update_uri() });
+
+</script>
 
 <!--
 <table border=1><tr><td id=here>
