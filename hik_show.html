@@ -22,6 +22,19 @@
   #selectable .ui-selected { background: #F39814; color: white; }
   #selectable { list-style-type: none; margin: 0; padding: 0; width: 60%; }
   #selectable li { margin: 3px; padding: 0.4em; font-size: 1.0em; height: 18px; }
+
+
+    label, input { display:block; }
+    input.text { margin-bottom:12px; width:95%; padding: .4em; }
+    fieldset { padding:0; border:0; margin-top:25px; }
+    h1 { font-size: 1.2em; margin: .6em 0; }
+    div#users-contain { width: 350px; margin: 20px 0; }
+    div#users-contain table { margin: 1em 0; border-collapse: collapse; width: 100%; }
+    div#users-contain table td, div#users-contain table th { border: 1px solid #eee; padding: .6em 10px; text-align: left; }
+    .ui-dialog .ui-state-error { padding: .3em; }
+    .validateTips { border: 1px solid transparent; padding: 0.3em; }
+
+
   </style>
 
   <script>
@@ -39,13 +52,6 @@ var cam_window = [];
 
 
     $( "#tabs" ).tabs();
-
-    $("#pls").button({
-      icons: {
-        primary: "ui-icon-circle-plus"
-      },
-      text: false
-    }).click(function(e){ e.preventDefault(); });
 
     $("#play").button({
       icons: {
@@ -220,6 +226,103 @@ function play_cam() {
 
 
 
+
+ $(function() {
+    var dialog, form,
+ 
+      // From http://www.whatwg.org/specs/web-apps/current-work/multipage/states-of-the-type-attribute.html#e-mail-state-%28type=email%29
+      emailRegex = /^[a-zA-Z0-9.!#$%&'*+\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/,
+      name = $( "#name" ),
+      email = $( "#email" ),
+      password = $( "#password" ),
+      allFields = $( [] ).add( name ).add( email ).add( password ),
+      tips = $( ".validateTips" );
+ 
+    function updateTips( t ) {
+      tips
+        .text( t )
+        .addClass( "ui-state-highlight" );
+      setTimeout(function() {
+        tips.removeClass( "ui-state-highlight", 1500 );
+      }, 500 );
+    }
+ 
+    function checkLength( o, n, min, max ) {
+      if ( o.val().length > max || o.val().length < min ) {
+        o.addClass( "ui-state-error" );
+        updateTips( "Length of " + n + " must be between " +
+          min + " and " + max + "." );
+        return false;
+      } else {
+        return true;
+      }
+    }
+ 
+    function checkRegexp( o, regexp, n ) {
+      if ( !( regexp.test( o.val() ) ) ) {
+        o.addClass( "ui-state-error" );
+        updateTips( n );
+        return false;
+      } else {
+        return true;
+      }
+    }
+ 
+    function addUser() {
+      var valid = true;
+
+      add_cam();
+	  dialog.dialog( "close" );
+
+      return valid;
+
+      allFields.removeClass( "ui-state-error" );
+ 
+      valid = valid && checkLength( name, "username", 3, 16 );
+      valid = valid && checkLength( email, "email", 6, 80 );
+      valid = valid && checkLength( password, "password", 5, 16 );
+ 
+      valid = valid && checkRegexp( name, /^[a-z]([0-9a-z_\s])+$/i, "Username may consist of a-z, 0-9, underscores, spaces and must begin with a letter." );
+      valid = valid && checkRegexp( email, emailRegex, "eg. ui@jquery.com" );
+      valid = valid && checkRegexp( password, /^([0-9a-zA-Z])+$/, "Password field only allow : a-z 0-9" );
+ 
+      if ( valid ) {
+        
+      		// DO ADD CAMERA
+
+        dialog.dialog( "close" );
+      }
+      return valid;
+    }
+ 
+    dialog = $( "#dialog-form" ).dialog({
+      autoOpen: false,
+      height: 450,
+      width: 300,
+      modal: true,
+      buttons: {
+        "create camera": addUser,
+        Cancel: function() {
+          dialog.dialog( "close" );
+        }
+      },
+      close: function() {
+        form[ 0 ].reset();
+        allFields.removeClass( "ui-state-error" );
+      }
+    });
+ 
+    form = dialog.find( "form" ).on( "submit", function( event ) {
+      event.preventDefault();
+      addUser();
+    });
+ 
+    $( "#create-user" ).button().on( "click", function() {
+      dialog.dialog( "open" );
+    });
+  });
+
+
 </script>
 
 
@@ -236,23 +339,47 @@ function play_cam() {
   </ul>
   <div id="tabs-1">
     <p >
+	
+	<button id="create-user">add camera</button>
+	
+	<div id="dialog-form" title="Create new camera">
+	  <p class="validateTips">All form fields are required.</p>
 
 		<form>
-			name: <input type="text" id="_name" size="25" value="cam1"><br>
-			IP: <input type="text" id="_ipaddr" size="15" value="192.0.0.64">
 
-			login: <input type="text" id="_user_name" size=6 value="admin">
-			pass: <input type="password" id="_user_pass" size=10 value="12345"> <br>
-			Port: <input type="text" id="_port" size=3 value="554">
-			CH: <select id="_ch"><option>1<option>2<option>3<option>4<option>5<option>6<option>7<option>8</select>
-			Stream: <select id="_stream"><option value=1>Main<option value=2 selected>SubStream</select>
-			<button onclick="add_cam();" id="pls">+</button>
-			<br>
+			<fieldset>
+			<label for="name">Name:</label>
+			<input type="text" id="_name" size="25" value="cam1" class="text ui-widget-content ui-corner-all">
 			
+			<label for="ip">IP:</label>
+			<input type="text" id="_ipaddr" size="15" value="192.0.0.64" class="text ui-widget-content ui-corner-all">
 
+			<label for="login">login:</label>
+			<input type="text" id="_user_name" size=6 value="admin" class="text ui-widget-content ui-corner-all">
 
+			<label for="pass">pass:</label>
+			<input type="password" id="_user_pass" size=10 value="12345" class="text ui-widget-content ui-corner-all">
+
+			<label for="port">Port:</label>
+			<input type="text" id="_port" size=3 value="554" class="text ui-widget-content ui-corner-all">
+
+			<table width=70%><tr><td>
+			<label for="ch">CH:</label>
+			<select id="_ch" class="text ui-widget-content ui-corner-all"><option>1<option>2<option>3<option>4<option>5<option>6<option>7<option>8</select>
+
+			</td><td>
+
+			<label for="stream">Stream:</label>
+			<select id="_stream" class="text ui-widget-content ui-corner-all"><option value=1>Main<option value=2 selected>SubStream</select>
 			
+			</td></tr></table>
+
+			<input type="submit" tabindex="-1" style="position:absolute; top:-1000px">
+			</fieldset>
+
 		</form>
+		</div>
+		
 
 	</p>
 
@@ -271,7 +398,7 @@ function play_cam() {
 	<form>
 		URI:<br>
 		<input style="font-size:10px;" type="text" id="_URI" size=90 disabled value=""><br><br>
-		
+
 		<button onclick="play_cam();" id="play">play</button>
 		<button onclick="del_cam();" id="del">delete</button>
 	</form>
